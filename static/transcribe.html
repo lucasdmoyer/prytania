@@ -84,50 +84,14 @@
       <div class="columns">
           <div class="column">
               <div class="content is-medium">
-                  <h3 class="title">Welcome to Prytania</h3>
-                  <hr>
-                  <h4 class="subtitle">What does it do?</h4>
-                  <p>Prytania is a smart meeting assistant that makes meetings a little more manageable.</p>
-                  <ul>
-                      <li>Join and record conference calls</li>
-                      <li>Transcribe audio into searchable text</li>
-                      <li>Create summaries of the content</li>
-                      <li>Automatically send emails of the full transcript and notes to participants</li>
-                  </ul>
-              </div>
-          </div>
-
-          <div class="column">
-              <div class="content is-medium">
-                  <h3 class="title">Broken Meetings</h3>
-                  <hr>
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/F6Qo8IDsVNg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                  <h3 class="title">Your meeting notes... delivered to {{email}}</h3>
+                  <p>{{text}}</p>
               </div>
           </div>
       </div>
       <div class="splitter">
           <hr>
       </div>
-      <div class="columns">
-          <div class="column">
-            <div class="content is-medium">
-                <h3 class="title">Don't believe us?</h3>
-                <h4 class="subtitle">Upload a MP4 file to try it out</h4>
-                <form action="/transcribe" method="post" enctype="multipart/form-data">
-                    <p>Email</p>
-                    <input name="email" type="email" class="input" placeholder="sample@example.com">
-                    <br>
-                    <br>
-                    <p>MP4 File</p>
-                    <input type="file" name="file">
-                    <br>
-                    <br>
-                    <button class="button is-primary">Submit</button>
-                </form>
-            </div>
-          </div>
-      </div>
-
       <div class="splitter">
           <hr>
       </div>
@@ -140,11 +104,9 @@
           </div>
 
       </div>
-
-      <div class="splitter"></div>
   </div>
 
-  <script>
+  <!-- <script>
   const fileInput = document.querySelector('#file-js-example input[type=file]');
   fileInput.onchange = () => {
     if (fileInput.files.length > 0) {
@@ -152,6 +114,6 @@
       fileName.textContent = fileInput.files[0].name;
     }
   }
-</script>
+</script> -->
   </body>
 </html>

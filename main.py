@@ -1,4 +1,4 @@
-from fastapi import FastAPI, File, UploadFile, Request
+from fastapi import FastAPI, File, UploadFile, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
@@ -10,7 +10,16 @@ from os import path
 import pydub
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
-from starlette.responses import FileResponse
+from starlette.responses import FileResponse, RedirectResponse, Response
+import smtplib
+from string import Template
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from config import *
+# config.py is formatted as
+# MY_ADDRESS =  "<an outlook email>"
+# PASSWORD = "<outlook password>"
+
 app = FastAPI()
 app.mount(r'/static', StaticFiles(directory="static"), name="static")
 
@@ -24,7 +33,7 @@ vid_file = r'./binary.mp4'
 aud_file = r'./audio.mp3'
 wav_file = r'./transcript.wav'
 @app.post("/transcribe")
-async def transcribe(file: UploadFile = File(...)):
+async def transcribe(request: Request, file: UploadFile = File(...), email: str = Form(...)):
     print("START")
     contents = await file.read()
     print("AFTER CONTENTS")
@@ -43,7 +52,34 @@ async def transcribe(file: UploadFile = File(...)):
     print("GOT SOUND")
     text = get_large_audio_transcription(wav_file)
     print("\nFull text:", text)
-    return {"text": text}
+    print("the email is: ", email)
+    email_user(email, text)
+    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email})
+
+@app.get("/transcribe", response_class=HTMLResponse)
+async def transcribe(request: Request):
+    text = 'sample text'
+    email = 'sample@email.com'
+    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email})
+
+
+def email_user(email_address , transcript):
+    email=email_address
+    s = smtplib.SMTP(host='smtp-mail.outlook.com', port=587)
+    s.starttls()
+    s.login(MY_ADDRESS, PASSWORD)
+    msg = MIMEMultipart()  
+    msg['From']=MY_ADDRESS
+    msg['To']=email
+    msg['Subject']="Prtania meeting notes"
+
+    # add in the message body
+    message=transcript
+    msg.attach(MIMEText(message, 'plain'))
+
+    # send the message via the server set up earlier.
+    s.send_message(msg)
+    del msg
 
 
 def get_large_audio_transcription(path):

@@ -3,3 +3,6 @@ audio-chunks
 *.mp4
 *.wav
 test.py
+config.py
+__pycache__
+.pyc
