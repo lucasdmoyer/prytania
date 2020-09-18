@@ -10,7 +10,7 @@ from pydub.silence import split_on_silence
 from starlette.responses import FileResponse
 app = FastAPI()
 
-
+#uvicorn main:app --reload
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
