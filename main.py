@@ -1,4 +1,7 @@
-from fastapi import FastAPI, File, UploadFile
+from fastapi import FastAPI, File, UploadFile, Request
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 import subprocess
 import moviepy.editor as mp 
 import speech_recognition as sr
@@ -9,29 +12,35 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 from starlette.responses import FileResponse
 app = FastAPI()
+app.mount(r'/static', StaticFiles(directory="static"), name="static")
 
+templates = Jinja2Templates(directory="static")
 
-@app.get("/")
-async def root():
-    return {"message": "Hello World"}
+@app.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse("index.html", {"request": request})
 
 vid_file = r'./binary.mp4'
 aud_file = r'./audio.mp3'
 wav_file = r'./transcript.wav'
 @app.post("/transcribe")
 async def transcribe(file: UploadFile = File(...)):
+    print("START")
     contents = await file.read()
+    print("AFTER CONTENTS")
     with open(vid_file, 'wb') as wfile:
         wfile.write(contents)
-
+    print("WROTE FILE")
     # Insert Local Video File Path  
-    clip = mp.VideoFileClip(vid_file) 
+    clip = mp.VideoFileClip(vid_file)
+    print("CLIPPED")
     # Insert Local Audio File Path 
-    clip.audio.write_audiofile(aud_file) 
+    clip.audio.write_audiofile(aud_file)
+    print("CLIPPED AGAIN")
 
     sound = AudioSegment.from_file(aud_file, format='mp3')
     sound.export(wav_file, format="wav")
-    
+    print("GOT SOUND")
     text = get_large_audio_transcription(wav_file)
     print("\nFull text:", text)
     return {"text": text}
