@@ -16,6 +16,8 @@ from string import Template
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from config import *
+import requests
+import json
 # config.py is formatted as
 # MY_ADDRESS =  "<an outlook email>"
 # PASSWORD = "<outlook password>"
@@ -33,7 +35,7 @@ vid_file = r'./binary.mp4'
 aud_file = r'./audio.mp3'
 wav_file = r'./transcript.wav'
 @app.post("/transcribe")
-async def transcribe(request: Request, file: UploadFile = File(...), email: str = Form(...)):
+async def transcribe(request: Request, file: UploadFile = File(...), email: str = Form(...),  title: str = Form(...),  sentence_num: str = Form(...)):
     print("START")
     contents = await file.read()
     print("AFTER CONTENTS")
@@ -53,15 +55,27 @@ async def transcribe(request: Request, file: UploadFile = File(...), email: str 
     text = get_large_audio_transcription(wav_file)
     print("\nFull text:", text)
     print("the email is: ", email)
-    email_user(email, text)
-    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email})
+    #email_user(email, text)
+    summary = getSummarization(title,text,sentence_num)     
+    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email, 'summary': summary})
 
 @app.get("/transcribe", response_class=HTMLResponse)
 async def transcribe(request: Request):
     text = 'sample text'
     email = 'sample@email.com'
-    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email})
+    summary = 'meeting summary'
+    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email, 'summary': summary})
 
+
+def getSummarization(title, text, sentence_num):
+    url = "https://aylien-text.p.rapidapi.com/summarize"
+    querystring = {"title":title,"text":text,"sentences_number":sentence_num}
+    headers = {
+    'x-rapidapi-host':aylien,
+    'x-rapidapi-key': aylien_key
+    }
+    response = json.loads(requests.request("GET", url, headers=headers, params=querystring).text)
+    return response['sentences']
 
 def email_user(email_address , transcript):
     email=email_address
@@ -80,7 +94,6 @@ def email_user(email_address , transcript):
     # send the message via the server set up earlier.
     s.send_message(msg)
     del msg
-
 
 def get_large_audio_transcription(path):
     """
