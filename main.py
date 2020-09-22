@@ -56,15 +56,17 @@ async def transcribe(request: Request, file: UploadFile = File(...), email: str 
     print("\nFull text:", text)
     print("the email is: ", email)
     #email_user(email, text)
-    summary = getSummarization(title,text,sentence_num)     
-    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email, 'summary': summary})
+    summary = getSummarization(title,text,sentence_num)
+    tags = getTags(text)    
+    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email, 'summary': summary, 'tags':tags})
 
 @app.get("/transcribe", response_class=HTMLResponse)
 async def transcribe(request: Request):
     text = 'sample text'
     email = 'sample@email.com'
     summary = 'meeting summary'
-    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email, 'summary': summary})
+    tags = 'tags'
+    return templates.TemplateResponse('transcribe.html', context={'request':request, 'text':text, 'email':email, 'summary': summary,'tags':tags})
 
 
 def getSummarization(title, text, sentence_num):
@@ -76,6 +78,16 @@ def getSummarization(title, text, sentence_num):
     }
     response = json.loads(requests.request("GET", url, headers=headers, params=querystring).text)
     return response['sentences']
+
+def getTags(text):
+    url = "https://aylien-text.p.rapidapi.com/hashtags"
+    querystring = {"text":text,"language":"en"}
+    headers = {
+    'x-rapidapi-host':aylien,
+    'x-rapidapi-key': aylien_key
+    }
+    response = json.loads(requests.request("GET", url, headers=headers, params=querystring).text)
+    return response['hashtags']
 
 def email_user(email_address , transcript):
     email=email_address
