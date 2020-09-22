@@ -12,6 +12,13 @@
       {
         height: 5vh;
       }
+
+      button {
+        font-size: 100%;
+        font-family: inherit;
+        border: 0;
+        padding: 0;
+      }
   </style>
   <body>
   <script>
@@ -80,52 +87,28 @@
       </div>
     </nav>
   <div class="container is-fluid">
+      <div class="columns">
+          <div class="column">
+              <audio controls id="audioPlayer">
+                  <source src="http://localhost:8080/audio.mp3" type="audio/mpeg">
+                Your browser does not support the audio element.
+              </audio>
+          </div>
+      </div>
+      <div class="splitter"></div>
       <div class="splitter"></div>
       <div class="columns">
           <div class="column">
               <div class="content is-medium">
-                  <h3 class="title">Welcome to Prytania</h3>
+                  <h3 class="title">Audio Results</h3>
                   <hr>
-                  <h4 class="subtitle">What does it do?</h4>
-                  <p>Prytania is a smart meeting assistant that makes meetings a little more manageable.</p>
-                  <ul>
-                      <li>Join and record conference calls</li>
-                      <li>Transcribe audio into searchable text</li>
-                      <li>Create summaries of the content</li>
-                      <li>Automatically send emails of the full transcript and notes to participants</li>
-                  </ul>
+                  {{ finished|safe }}
               </div>
           </div>
 
-          <div class="column">
-              <div class="content is-medium">
-                  <h3 class="title">Broken Meetings</h3>
-                  <hr>
-                  <iframe width="560" height="315" src="https://www.youtube.com/embed/F6Qo8IDsVNg" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-              </div>
-          </div>
       </div>
       <div class="splitter">
           <hr>
-      </div>
-      <div class="columns">
-          <div class="column">
-            <div class="content is-medium">
-                <h3 class="title">Don't believe us?</h3>
-                <h4 class="subtitle">Upload a WAV file to try it out</h4>
-                <form action="/transcribe_page" method="post" enctype="multipart/form-data">
-                    <p>Email</p>
-                    <input name="email" type="email" class="input" placeholder="sample@example.com">
-                    <br>
-                    <br>
-                    <p>MP4 File</p>
-                    <input type="file" name="file">
-                    <br>
-                    <br>
-                    <button class="button is-primary">Submit</button>
-                </form>
-            </div>
-          </div>
       </div>
 
       <div class="columns">
@@ -140,6 +123,21 @@
 
       <div class="splitter"></div>
   </div>
+  <script>
+    function jump(time) {
+        console.log("Starting jump for time " + time);
 
+        var element = document.getElementById('audioPlayer');
+        var source = element.src;
+        console.log(source + " before being overwritten");
+        source = "http://localhost:8080/audio.mp3" + "#t=" + time;
+
+        element.src = source;
+        element.play();
+
+
+    }
+
+  </script>
   </body>
 </html>

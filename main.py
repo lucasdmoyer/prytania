@@ -23,34 +23,35 @@ async def root(request: Request):
 vid_file = r'./binary.mp4'
 aud_file = r'./audio.mp3'
 wav_file = r'./transcript.wav'
-@app.post("/transcribe")
-async def transcribe(file: UploadFile = File(...)):
-    print("START")
+@app.post("/transcribe_page")
+async def transcribe(request: Request, file: UploadFile = File(...)):
     contents = await file.read()
-    print("AFTER CONTENTS")
     with open(vid_file, 'wb') as wfile:
         wfile.write(contents)
-    print("WROTE FILE")
-    # Insert Local Video File Path  
+    # Insert Local Video File Path
     clip = mp.VideoFileClip(vid_file)
-    print("CLIPPED")
-    # Insert Local Audio File Path 
+    # Insert Local Audio File Path
     clip.audio.write_audiofile(aud_file)
-    print("CLIPPED AGAIN")
 
     sound = AudioSegment.from_file(aud_file, format='mp3')
     sound.export(wav_file, format="wav")
-    print("GOT SOUND")
     text = get_large_audio_transcription(wav_file)
     print("\nFull text:", text)
-    return {"text": text}
 
+    html_content = ""
+
+    for item in text:
+        html_content += "<button onclick=\"jump({})\">".format(item[1]) + item[0] + "</button>"
+
+    return templates.TemplateResponse("process.html", {"finished": html_content, "request": request})
 
 def get_large_audio_transcription(path):
     """
     Splitting the large audio file into chunks
     and apply speech recognition on each of these chunks
     """
+    # Start Stop is a list of lists containing the start and stop time for audio chunks and transcription outputs
+    start_stops = []
     # open the audio file using pydub
     r = sr.Recognizer()
     sound = AudioSegment.from_wav(path)  
@@ -68,11 +69,15 @@ def get_large_audio_transcription(path):
     if not os.path.isdir(folder_name):
         os.mkdir(folder_name)
     whole_text = ""
-    # process each chunk 
+
+    # process each chunk
+    start = 0
     for i, audio_chunk in enumerate(chunks, start=1):
         # export audio chunk and save it in
         # the `folder_name` directory.
         chunk_filename = os.path.join(folder_name, f"chunk{i}.wav")
+
+        time_elapsed = audio_chunk.duration_seconds
         audio_chunk.export(chunk_filename, format="wav")
         # recognize the chunk
         with sr.AudioFile(chunk_filename) as source:
@@ -82,9 +87,15 @@ def get_large_audio_transcription(path):
                 text = r.recognize_google(audio_listened)
             except sr.UnknownValueError as e:
                 print("Error:", str(e))
+                start_stops.append(["**undiscernable**", start])
+                start = start + time_elapsed
             else:
                 text = f"{text.capitalize()}. "
-                print(chunk_filename, ":", text)
+                #print(chunk_filename, ":", text)
+                print("Text\n{}\n-----".format(text))
                 whole_text += text
+                start_stops.append([text, start])
+                start = start + time_elapsed
     # return the text for all chunks detected
-    return whole_text
+    print("finished")
+    return start_stops
