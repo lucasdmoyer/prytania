@@ -2,3 +2,8 @@ audio-chunks
 *.mp3
 *.mp4
 *.wav
+test.py
+config.py
+__pycache__
+.pyc
+.idea
